@@ -24,21 +24,34 @@
 </head>
 <body>
     <div id="container">
-        <h1>Number of members that have received their clue</h1>
+        <h1>Number of Members that have Received their Clue</h1>
         <div id="blocks" class="time-display">0</div>
     </div>
 
     <script>
         function calculateSecondsSinceNineAM() {
             const now = new Date();
-            const nineAM = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 0, 0, 0);
+            const options = {timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', second: '2-digit'};
+            const formatter = new Intl.DateTimeFormat('en-US', options);
+            const parts = formatter.formatToParts(now);
+            const hourInBoston = parseInt(parts.find(part => part.type === 'hour').value, 10);
+            const minuteInBoston = parseInt(parts.find(part => part.type === 'minute').value, 10);
+            const secondInBoston = parseInt(parts.find(part => part.type === 'second').value, 10);
 
-            // Adjust for cases where the current time is before 9 AM
-            if (now < nineAM) {
-                nineAM.setDate(nineAM.getDate() - 1);
+            // Calculate the current time in seconds since midnight in Boston
+            const currentSecondsInBoston = (hourInBoston * 3600) + (minuteInBoston * 60) + secondInBoston;
+
+            // Calculate the time difference from 9 AM in Boston (9 AM = 9*3600 seconds from midnight)
+            const nineAMInBostonSeconds = 9 * 3600;
+
+            let secondsSinceNineAM;
+            if (currentSecondsInBoston >= nineAMInBostonSeconds) {
+                secondsSinceNineAM = currentSecondsInBoston - nineAMInBostonSeconds;
+            } else {
+                // If the current time is before 9 AM, calculate the difference from 9 AM on the previous day
+                const secondsInDay = 24 * 3600;
+                secondsSinceNineAM = currentSecondsInBoston + (secondsInDay - nineAMInBostonSeconds);
             }
-
-            const secondsSinceNineAM = Math.floor((now - nineAM) / 1000);
             return secondsSinceNineAM;
         }
 
