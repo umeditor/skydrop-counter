@@ -52,39 +52,34 @@
     <div id="container">
         <h1 class="header">Number of members that have received their clue:</h1>
         <div id="blocks" class="large-display">0</div>
-        <div class="comment">Number of seconds until next clue is sent:</div>
-        <div id="countdown" class="countdown">99</div>
-        <div class="comment">This count is calculated assuming one clue goes out each 99 seconds, starting at 9 AM EDT.</div>
+        <div class="comment">Number of seconds until the next clue is sent:</div>
+        <div id="countdown" class="countdown">99.769053117783</div>
+        <div class="comment">This count is calculated assuming one clue goes out every 99.769053117783 seconds, starting at 9 AM EDT.</div>
     </div>
 
     <script>
+        const INTERVAL_SECONDS = 99.769053117783;
+
         function calculateSecondsSinceNineAM() {
             const now = new Date();
-            // Define the time zone and format options
-            const options = { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
-            const formatter = new Intl.DateTimeFormat('en-US', options);
 
-            // Get the current time in Boston
-            const parts = formatter.formatToParts(now);
-            const hourInBoston = parseInt(parts.find(part => part.type === 'hour').value, 10);
-            const minuteInBoston = parseInt(parts.find(part => part.type === 'minute').value, 10);
-            const secondInBoston = parseInt(parts.find(part => part.type === 'second').value, 10);
+            const options = { 
+                timeZone: 'America/New_York', 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit', 
+                hour12: false 
+            };
+            const formattedTime = new Intl.DateTimeFormat('en-US', options).format(now);
+            const [hourInBoston, minuteInBoston, secondInBoston] = formattedTime.split(':').map(Number);
 
-            // Calculate the total seconds since midnight in Boston
-            const currentSecondsInBoston = (hourInBoston * 3600) + (minuteInBoston * 60) + secondInBoston;
+            const totalSecondsInBoston = (hourInBoston * 3600) + (minuteInBoston * 60) + secondInBoston;
 
-            // Calculate the total seconds from 9 AM in Boston
             const nineAMInBostonSeconds = 9 * 3600;
+            let secondsSinceNineAM = (totalSecondsInBoston >= nineAMInBostonSeconds) 
+                ? totalSecondsInBoston - nineAMInBostonSeconds
+                : totalSecondsInBoston + (24 * 3600 - nineAMInBostonSeconds);
 
-            // Difference in seconds from 9 AM
-            let secondsSinceNineAM;
-            if (currentSecondsInBoston >= nineAMInBostonSeconds) {
-                secondsSinceNineAM = currentSecondsInBoston - nineAMInBostonSeconds;
-            } else {
-                // If current time is before 9 AM, use the previous day calculation
-                const secondsInDay = 24 * 3600;
-                secondsSinceNineAM = currentSecondsInBoston + (secondsInDay - nineAMInBostonSeconds);
-            }
             return secondsSinceNineAM;
         }
 
@@ -93,24 +88,21 @@
             const countdownElement = document.getElementById('countdown');
 
             const secondsSinceNineAM = calculateSecondsSinceNineAM();
-            const blocksSinceNineAM = Math.floor(secondsSinceNineAM / 99);
-            const secondsToNextBlock = 99 - (secondsSinceNineAM % 99);
+            const blocksSinceNineAM = Math.floor(secondsSinceNineAM / INTERVAL_SECONDS);
+            const secondsToNextBlock = INTERVAL_SECONDS - (secondsSinceNineAM % INTERVAL_SECONDS);
 
             blocksElement.textContent = blocksSinceNineAM;
-            countdownElement.textContent = secondsToNextBlock;
+            countdownElement.textContent = secondsToNextBlock.toFixed(3);
 
-            // Add or remove flash class
-            if (secondsToNextBlock <= 5) {
+            if (secondsToNextBlock <= 5.0) {
                 blocksElement.classList.add('flash');
             } else {
                 blocksElement.classList.remove('flash');
             }
         }
 
-        // Update every second
         setInterval(updateDisplay, 1000);
 
-        // Initial call to show the time immediately
         updateDisplay();
     </script>
 </body>
