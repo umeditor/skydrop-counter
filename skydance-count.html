@@ -20,35 +20,45 @@
             font-size: 2em;
             color: #333;
         }
+        .comment {
+            margin-top: 10px;
+            font-size: 1em;
+            color: #555;
+        }
     </style>
 </head>
 <body>
     <div id="container">
-        <h1>Number of Members that have Received their Clue</h1>
+        <h1>Number of members that have received their clue</h1>
         <div id="blocks" class="time-display">0</div>
+        <div class="comment">This count is calculated assuming one clue goes out each 99 seconds, starting at 9 AM EDT.</div>
     </div>
 
     <script>
         function calculateSecondsSinceNineAM() {
             const now = new Date();
-            const options = {timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', second: '2-digit'};
+            // Define the time zone and format options
+            const options = { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
             const formatter = new Intl.DateTimeFormat('en-US', options);
+
+            // Get the current time in Boston
             const parts = formatter.formatToParts(now);
             const hourInBoston = parseInt(parts.find(part => part.type === 'hour').value, 10);
             const minuteInBoston = parseInt(parts.find(part => part.type === 'minute').value, 10);
             const secondInBoston = parseInt(parts.find(part => part.type === 'second').value, 10);
 
-            // Calculate the current time in seconds since midnight in Boston
+            // Calculate the total seconds since midnight in Boston
             const currentSecondsInBoston = (hourInBoston * 3600) + (minuteInBoston * 60) + secondInBoston;
 
-            // Calculate the time difference from 9 AM in Boston (9 AM = 9*3600 seconds from midnight)
+            // Calculate the total seconds from 9 AM in Boston
             const nineAMInBostonSeconds = 9 * 3600;
 
+            // Difference in seconds from 9 AM
             let secondsSinceNineAM;
             if (currentSecondsInBoston >= nineAMInBostonSeconds) {
                 secondsSinceNineAM = currentSecondsInBoston - nineAMInBostonSeconds;
             } else {
-                // If the current time is before 9 AM, calculate the difference from 9 AM on the previous day
+                // If current time is before 9 AM, use the previous day calculation
                 const secondsInDay = 24 * 3600;
                 secondsSinceNineAM = currentSecondsInBoston + (secondsInDay - nineAMInBostonSeconds);
             }
@@ -59,7 +69,7 @@
             const blocksElement = document.getElementById('blocks');
 
             const secondsSinceNineAM = calculateSecondsSinceNineAM();
-            const blocksSinceNineAM = Math.floor(secondsSinceNineAM / 40);
+            const blocksSinceNineAM = Math.floor(secondsSinceNineAM / 99);
 
             blocksElement.textContent = blocksSinceNineAM;
         }
